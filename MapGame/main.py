@@ -18,18 +18,19 @@ class Player(pygame.sprite.Sprite):
     def __init__(self):
         super(Player, self).__init__()
         self.image = pygame.image.load("imgs/player.png").convert_alpha()
-        # self.surf.set_colorkey((255, 255, 255), RLEACCEL)
         self.rect = self.image.get_rect()
+        self.rect.center = WW//2, WH//2
 
 player = Player()
-player_rect = player.rect
 
 # Map settings
-map1 = load_pygame('map.tmx')
+map1 = load_pygame('map1.tmx')
 map_data = pyscroll.TiledMapData(map1)
 map_layer = pyscroll.BufferedRenderer(map_data, (WW, WH))
-group = pyscroll.PyscrollGroup(map_layer=map_layer)
-group.add(player)
+all_group = pyscroll.PyscrollGroup(map_layer=map_layer)
+all_group.add(player)
+
+obs_layer = map1.get_layer_by_name('Obstacles')
 
 running = True
 while running:
@@ -72,12 +73,24 @@ while running:
         player.rect.x -= player_speed
 
     # collision
-    for sprite in group:
-        if player.rect.colliderect(sprite):
-            if p_dir == 'right':
-                player.rect.x -= player_speed
+    for x in range(50):
+        for y in range(50):
+            sprite = map1.get_tile_image(x, y, 1)
+            if sprite != None:
+                sprite_rect = sprite.get_rect()
+                sprite_rect.x = x * 64
+                sprite_rect.y = y * 64
+                if player.rect.colliderect(sprite_rect):
+                    if p_dir == 'up':
+                        player.rect.y += player_speed
+                    if p_dir == 'down':
+                        player.rect.y -= player_speed
+                    if p_dir == 'right':
+                        player.rect.x -= player_speed
+                    if p_dir == 'left':
+                        player.rect.x += player_speed
 
-    group.center(player.rect.center)
-    group.draw(window)
+    all_group.center(player.rect.center)
+    all_group.draw(window)
     
     pygame.display.update()
